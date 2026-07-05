@@ -77,9 +77,9 @@ void print(const char *str)
 void kernel_main()
 {
     terminal_initialize();
-    idt_init();
-    print("ABCFD");
-    print("\nwe good\n");
+    print("ABCFD\n");
 
-    outb(0x60,0xff);
+    idt_init();
+
+    start_interrupt();
 }

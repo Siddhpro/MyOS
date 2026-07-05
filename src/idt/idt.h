@@ -20,5 +20,7 @@ struct idtr_desc
 }__attribute((packed));
 
 void idt_init();
+void start_interrupt();
+void clear_interrupt();
 
 #endif

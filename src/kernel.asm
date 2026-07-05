@@ -17,12 +17,30 @@ _start:
     mov ebp,0x00200000
     mov esp,ebp
 
+    ;Enabling A20 Line
     in al,0x92
     or al,2
     out 0x92,al
+
+    ; ICW1 - Start initialization
+    mov al,0x11
+    out 0x20,al
+
+    ; ICW2 - Interrupt vector offset (IRQ0 -> INT 0x20)
+    mov al,0x20
+    out 0x21,al
+
+    ; ICW3 - Slave connected to IRQ2
+    mov al,0x04
+    out 0x21,al
+
+    ; ICW4 - 8086/88 mode
+    mov al,0x01
+    out 0x21,al
     
     call kernel_main
 
     jmp $
+
 
 times 512-($ -$$) db 0
