@@ -4,6 +4,7 @@
 #include <idt/idt.h>
 #include <io/io.h>
 #include <memory/heap/kheap.h>
+#include <memory/paging/paging.h>
 
 uint16_t *video_mem = 0;
 uint16_t terminal_row = 0;
@@ -75,6 +76,8 @@ void print(const char *str)
     }
 }
 
+
+static struct paging_chunk* kernel_chunk = 0;
 void kernel_main()
 {
     terminal_initialize();
@@ -84,13 +87,11 @@ void kernel_main()
 
     idt_init();
 
+    kernel_chunk = initialise_chunk(PAGING_READ_WRITE | PAGING_ACESS_FROM_ALL | PAGING_IS_PRESENT);
+    paging_switch(kernel_chunk->directory);
+    enable_paging();
+
     start_interrupt();
 
-    void *ptr = kmalloc(50);
-    void *ptr2 = kmalloc(50);
-    kfree(ptr);
-    void *ptr3 = kmalloc(50);
-
-    if(ptr || ptr2 || ptr3);
 
 }

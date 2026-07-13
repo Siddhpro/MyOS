@@ -2,6 +2,7 @@
 #include "heap.h"
 #include "config.h"
 #include "kernel.h"
+#include "../memory.h"
 
 struct heap kernel_heap;
 struct heap_table kernel_heap_table;
@@ -29,4 +30,14 @@ void* kmalloc(size_t size)
 void kfree(void *ptr)
 {
     return heap_free(&kernel_heap,ptr);
+}
+
+void* kzalloc(size_t size)
+{
+    void *ptr = kmalloc(size);
+    
+    if(!ptr) return NULL;
+
+    memset(ptr,0,size);
+    return ptr;
 }
