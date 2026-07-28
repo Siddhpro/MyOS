@@ -5,6 +5,7 @@
 #include <io/io.h>
 #include <memory/heap/kheap.h>
 #include <memory/paging/paging.h>
+#include "disk/disk.h"
 
 uint16_t *video_mem = 0;
 uint16_t terminal_row = 0;
@@ -80,18 +81,23 @@ void print(const char *str)
 static struct paging_chunk* kernel_chunk = 0;
 void kernel_main()
 {
+    //initialise terminal
     terminal_initialize();
     print("ABCFD\n");
 
+    // initialise heap
     kheap_init();
 
+    // search and initialise disk
+    disk_search_and_init();
+
+    // set idt
     idt_init();
 
+    // set paging
     kernel_chunk = initialise_chunk(PAGING_READ_WRITE | PAGING_ACESS_FROM_ALL | PAGING_IS_PRESENT);
     paging_switch(kernel_chunk->directory);
     enable_paging();
 
     start_interrupt();
-
-
 }

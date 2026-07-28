@@ -25,9 +25,9 @@ struct paging_chunk* initialise_chunk(uint8_t flags)
     }
 
     struct paging_chunk* chunk = (struct paging_chunk*)kzalloc(sizeof(struct paging_chunk));
-    chunk -> directory = directory;
+    chunk->directory = directory;
 
-    return chunk;
+    return chunk; 
 }
 
 uint32_t* get_directory_from_chunk(struct paging_chunk* chunk)
