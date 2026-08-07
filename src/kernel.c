@@ -6,6 +6,9 @@
 #include <memory/heap/kheap.h>
 #include <memory/paging/paging.h>
 #include "disk/disk.h"
+#include "fs/pparser.h"
+#include "string/string.h"
+#include "disk/stream.h"
 
 uint16_t *video_mem = 0;
 uint16_t terminal_row = 0;
@@ -14,18 +17,6 @@ uint16_t terminal_column = 0;
 uint16_t terminal_make_char(char c,char color)
 {
     return (color << 8) | c;
-}
-
-size_t strlen(const char *str)
-{
-    size_t counter = 0;
-
-    while(*(str+counter) != '\0')
-    {
-        counter++;
-    }
-
-    return counter;
 }
 
 void terminal_putchar(int x,int y,char c,char color)
@@ -100,4 +91,5 @@ void kernel_main()
     enable_paging();
 
     start_interrupt();
+
 }
