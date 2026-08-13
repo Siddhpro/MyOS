@@ -28,3 +28,14 @@ int memcmp(void *s1,void* s2,int len)
 
     return 0;
 }
+
+void memcpy(void* dest,void* src, int len)
+{
+    char* s1 = (char*) dest;
+    const char* s2 = (const char*) src;
+    for(int i=0;i<len;i++)
+    {
+        s1[i] = s2[i];
+    }
+
+}

@@ -8,6 +8,7 @@
 #include "disk/disk.h"
 #include "fs/pparser.h"
 #include "string/string.h"
+#include "fs/file.h"
 #include "disk/stream.h"
 
 uint16_t *video_mem = 0;
@@ -79,6 +80,9 @@ void kernel_main()
     // initialise heap
     kheap_init();
 
+    // initialise fs
+    fs_init();
+
     // search and initialise disk
     disk_search_and_init();
 
@@ -91,5 +95,13 @@ void kernel_main()
     enable_paging();
 
     start_interrupt();
+
+    int fd = fopen("0:/hello.txt","r");
+    if(fd)
+    {
+        print("SUCCESS!\n");
+    }
+
+    while(1) {}
 
 }

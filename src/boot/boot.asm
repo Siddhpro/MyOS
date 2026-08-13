@@ -4,11 +4,33 @@ BITS 16
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-_start:
-    jmp short start
-    nop
+jmp short start
+nop
 
- times 33 db 0
+
+;FAT16
+OEMIdentifier             db '12345678'
+BytesPerSector            dw 0x200
+SectorsPerCluster         db 0x80
+ReservedSectors           dw 200
+FATCopies                 db 0x02
+RootDirEntries            dw 0x40
+NumSectors                dw 0x00
+MediaType                 db 0xF8
+SectorsPerFAT             dw 0x100
+SectorsPerTrack           dw 0x20
+NumberOfHeads             dw 0x40
+HiddenSectors             dd 0x00
+SectorsBig                dd 0x773594
+
+;Extended BPB
+DriveNumber               db 0x80
+WinNTBit                  db 0x00
+Signature                 db 0x29
+VolumeID                  dd 0xD105
+VolumeIDString            db '12345678910'
+SystemIDString            db 'FAT16   '
+
  
 start:
     jmp 0:step2
@@ -69,7 +91,7 @@ gdt_descriptor:
     jmp CODE_SEG:0x0100000
 
 ata_lba_read:
-    mov ebx, eax, ; Backup the LBA
+    mov ebx, eax ; Backup the LBA
     ; Send the highest 8 bits of the lba to hard disk controller
     shr eax, 24
     or eax, 0xE0 ; Select the  master drive

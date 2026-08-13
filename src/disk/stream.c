@@ -89,7 +89,7 @@ int diskstream_read(struct disk_stream* stream, void* out, int total)
     stream->position += total;
 
     kfree(buffer);
-    return total;
+    return 0;
 }
 
 void diskstream_free(struct disk_stream* stream)
