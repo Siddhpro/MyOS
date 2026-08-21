@@ -96,12 +96,6 @@ void kernel_main()
 
     start_interrupt();
 
-    int fd = fopen("0:/hello.txt","r");
-    if(fd)
-    {
-        print("SUCCESS!\n");
-    }
-
     while(1) {}
 
 }
