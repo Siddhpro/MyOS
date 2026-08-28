@@ -35,10 +35,10 @@ uint32_t* get_directory_from_chunk(struct paging_chunk* chunk)
     return chunk->directory;
 }
 
-void paging_switch(uint32_t *directory)
+void paging_switch(struct paging_chunk* directory)
 {
-    paging_load_directory(directory);
-    current_directory = directory;
+    paging_load_directory(directory->directory);
+    current_directory = directory->directory;
 }
 
 
@@ -85,6 +85,98 @@ int paging_set(uint32_t* directory, void* virtual_address, uint32_t val)
 
     uint32_t* page_table = (uint32_t*)(directory[directory_index] & 0xFFFFF000);
     page_table[table_index] = val;
+
+out:
+    return res;
+}
+
+void paging_free(struct paging_chunk* chunk)
+{
+    for(int i=0;i<PAGING_TOTAL_ENTRIES_PER_TABLE;i++)
+    {
+        uint32_t entry = chunk->directory[i];
+        uint32_t* table = (uint32_t*)(entry & 0xfffff000);
+        kfree(table);
+    }
+
+    kfree(chunk->directory);
+    kfree(chunk);
+}
+
+void* paging_align_address(void* ptr)
+{
+    if((uint32_t)ptr % PAGING_PAGE_SIZE)
+    {
+        return (void*)((uint32_t)ptr + PAGING_PAGE_SIZE - ((uint32_t)ptr % PAGING_PAGE_SIZE));
+    }
+
+    return ptr;
+}
+
+int paging_map(struct paging_chunk* directory,void* virtual_addr,void* physical,int flags)
+{
+    if((unsigned int)virtual_addr % PAGING_PAGE_SIZE)
+    {
+        return -EINVARG;
+    }
+
+    if((unsigned int) physical % PAGING_PAGE_SIZE)
+    {
+        return -EINVARG;
+    }
+
+    return paging_set(directory->directory,virtual_addr,(uint32_t)physical | flags);
+}
+
+int paging_map_range(struct paging_chunk* directory,void* virtual_addr,void* physical,int count,int flags)
+{
+    int res = 0;
+    for(int i=0;i<count;i++)
+    {
+        res = paging_map(directory,virtual_addr,physical,flags);
+        if(res != 0)
+            break;
+
+        virtual_addr += PAGING_PAGE_SIZE;
+        physical += PAGING_PAGE_SIZE;
+    }
+    return res;
+}
+
+int paging_map_to(struct paging_chunk* directory, void* virtual_addr, void* physical, void* physical_end,int flags)
+{
+    int res = 0;
+    if((uint32_t)virtual_addr % PAGING_PAGE_SIZE != 0)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    if((uint32_t)physical % PAGING_PAGE_SIZE != 0)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    if((uint32_t)physical_end % PAGING_PAGE_SIZE != 0)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    if((uint32_t)physical_end < (uint32_t)physical)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    uint32_t total_pages = (physical_end - physical)/PAGING_PAGE_SIZE;
+    res = paging_map_range(directory,virtual_addr,physical,total_pages,flags);
+    if(res != ALL_OK)
+    {
+        res = -EIO;
+        goto out;
+    }
 
 out:
     return res;

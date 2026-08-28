@@ -23,11 +23,17 @@ struct paging_chunk
 
 struct paging_chunk* initialise_chunk(uint8_t flags);
 uint32_t* get_directory_from_chunk(struct paging_chunk* chunk);
-void paging_switch(uint32_t *directory);
+void paging_switch(struct paging_chunk* directory);
 void enable_paging();
+void paging_free(struct paging_chunk* chunk);
 
 int paging_set(uint32_t* directory, void* virtual_address, uint32_t val);
 bool is_aligned(void *address);
+void* paging_align_address(void* ptr);
+
+int paging_map_to(struct paging_chunk* directory, void* virtual_addr, void* physical, void* physical_end,int flags);
+int paging_map_range(struct paging_chunk* directory,void* virtual_addr,void* physical,int count,int flags);
+int paging_map(struct paging_chunk* directory,void* virtual_addr,void* physical,int flags);
 
 
 #endif

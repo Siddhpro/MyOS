@@ -115,3 +115,18 @@ int istrncmp(const char* s1,const char* s2,int n)
 
     return 0;
 }
+
+char* strncpy(char* s1,const char* s2,int size)
+{
+    int count = 0;
+    for(count = 0;count<size-1;count++)
+    {
+        if(s2[count] == 0x00)
+            break;
+
+        s1[count] = s2[count];
+    }
+
+    s1[count] = 0x00;
+    return s1;
+}
