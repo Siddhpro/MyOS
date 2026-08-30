@@ -88,6 +88,13 @@ int process_map_memory(struct process* process)
 {
     int res = 0;
     res = process_map_binary(process);
+    if(res < 0)
+    {
+        goto out;
+    }
+
+    paging_map_to(process->task->page_directory,(void*)PROGRAM_VIRTUAL_STACK_ADDRESS_END,process->stack,paging_align_address(process->stack + USER_PROGRAM_STACK_SIZE),PAGING_IS_PRESENT|PAGING_ACESS_FROM_ALL|PAGING_READ_WRITE);
+out:
     return res;
 }
 

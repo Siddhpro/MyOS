@@ -17,6 +17,7 @@
 #include "task/task.h"
 #include "task/process.h"
 #include "status.h"
+#include "isr80h/isr80h.h"
 
 uint16_t *video_mem = 0;
 uint16_t terminal_row = 0;
@@ -97,6 +98,12 @@ struct gdt_structured gdt_structured[TOTAL_GDT_SEGMENTS] =
     {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9} //tss
 };
 
+void kernel_page()
+{
+    kernel_registers();
+    paging_switch(kernel_chunk);
+}
+
 void kernel_main()
 {
     //initialise terminal
@@ -130,6 +137,8 @@ void kernel_main()
     kernel_chunk = initialise_chunk(PAGING_READ_WRITE | PAGING_ACESS_FROM_ALL | PAGING_IS_PRESENT);
     paging_switch(kernel_chunk);
     enable_paging();
+
+    isr80h_register_commands();
 
     struct process* process = 0;
     int res = process_load("0:/blank.bin",&process);

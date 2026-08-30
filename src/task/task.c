@@ -3,7 +3,9 @@
 #include "status.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
+#include "memory/paging/paging.h"
 #include "process.h"
+#include "string/string.h"
 
 struct task* current_task = 0;
 struct task* task_tail = 0;
@@ -120,6 +122,13 @@ out:
 
 }
 
+int task_page_task(struct task* task)
+{
+    user_registers();
+    task_switch(task);
+    return 0;
+}
+
 int task_page()
 {
     user_registers();
@@ -143,4 +152,82 @@ void task_run_first_task()
 
     task_switch(task_head);
     task_return(&task_head->registers);
+}
+
+int copy_string_from_task(struct task* task,void* virtual,void* physical,int max)
+{
+    if(max >= PAGING_PAGE_SIZE)
+    {
+        return -EINVARG;
+    }
+
+    int res = 0;
+    char* temp = kzalloc(max);
+    if(!temp)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
+
+    uint32_t* task_directory = task->page_directory->directory;
+    uint32_t old_entry = paging_get(task_directory,temp);
+
+    paging_map(task->page_directory,temp,temp,PAGING_READ_WRITE|PAGING_IS_PRESENT|PAGING_ACESS_FROM_ALL);
+    paging_switch(task->page_directory);
+    strncpy(temp,virtual,max);
+    kernel_page();
+
+    res = paging_set(task_directory,temp,old_entry);
+    if(res < 0)
+    {
+        res = -EIO;
+        goto out_free;
+    }
+
+    strncpy(physical,temp,max);
+
+out_free:
+    kfree(temp);
+
+out:
+    return res;
+}
+
+void task_save_state(struct task* task, struct interrupt_frame* frame)
+{
+    task->registers.ip = frame->ip;
+    task->registers.cs = frame->cs;
+    task->registers.flags = frame->flags;
+    task->registers.esp = frame->esp;
+    task->registers.ss = frame->ss;
+    task->registers.eax = frame->eax;
+    task->registers.ebp = frame->ebp;
+    task->registers.ebx = frame->ebx;
+    task->registers.ecx = frame->ecx;
+    task->registers.edi = frame->edi;
+    task->registers.edx = frame->edx;
+    task->registers.esi = frame->esi;
+}
+
+void task_current_save_state(struct interrupt_frame* frame)
+{
+    if(!task_current())
+    {
+        panic("task_current_save_state: no current task to save\n");
+    }
+
+    struct task* task = task_current();
+    task_save_state(task,frame);
+}
+
+void* task_get_stack_item(struct task* task,int index)
+{
+    void* res = 0;
+    uint32_t* sp = (uint32_t*)task->registers.esp;
+
+    task_page_task(task);
+    res  = (void*) sp[index];
+
+    kernel_page();
+    return res;
 }

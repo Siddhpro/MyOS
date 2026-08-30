@@ -34,6 +34,7 @@ void* paging_align_address(void* ptr);
 int paging_map_to(struct paging_chunk* directory, void* virtual_addr, void* physical, void* physical_end,int flags);
 int paging_map_range(struct paging_chunk* directory,void* virtual_addr,void* physical,int count,int flags);
 int paging_map(struct paging_chunk* directory,void* virtual_addr,void* physical,int flags);
+uint32_t paging_get(uint32_t* directory,void* virtual_address);
 
 
 #endif
