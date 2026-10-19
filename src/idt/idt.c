@@ -5,25 +5,34 @@
 #include "../io/io.h"
 #include "kernel.h"
 #include "task/task.h"
+#include "status.h"
 
 struct idt_desc idt_descriptors[TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
+extern void* interrupt_pointer_table[TOTAL_INTERRUPTS];
+static INTERRUPT_CALLBACK_FUNCTION interrupt_callbacks[TOTAL_INTERRUPTS];
 static ISR80H_COMMAND isr80h_commands[MAX_ISR80H_COMMANDS];
 
 extern void idt_load(void * ptr);
-extern void int21h();
 extern void no_interrupt();
 extern void isr80h_wrapper();
 
-void int21h_handler()
+void no_interrupt_handler()
 {
-    print("HI");
     outb(0x20,0x20);
 }
 
-void no_interrupt_handler()
+void interrupt_handler(int interrupt,struct interrupt_frame* frame)
 {
+    kernel_page();
+    if(interrupt_callbacks[interrupt] != 0)
+    {
+        task_current_save_state(frame);
+        interrupt_callbacks[interrupt](frame);
+    }
+
+    task_page();
     outb(0x20,0x20);
 }
 
@@ -52,11 +61,10 @@ void idt_init()
 
     for(int i=0;i<TOTAL_INTERRUPTS;i++)
     {
-        idt_set(i,no_interrupt);
+        idt_set(i,interrupt_pointer_table[i]);
     }
     
     idt_set(0,idt_zero);
-    idt_set(0x21,int21h);
     idt_set(0x80,isr80h_wrapper);
     idt_load(&idtr_descriptor);
 }
@@ -74,6 +82,21 @@ void isr80h_register_command(int command, ISR80H_COMMAND func)
     }
 
     isr80h_commands[command] = func;
+}
+
+int idt_register_interrupt_callback(int interrupt,INTERRUPT_CALLBACK_FUNCTION interrupt_callback)
+{
+    int res = 0;
+    if(interrupt < 0 || interrupt >= TOTAL_INTERRUPTS)
+    {
+        res = -EINVARG;
+        return res;
+    }
+
+
+    interrupt_callbacks[interrupt] = interrupt_callback;
+
+    return res;
 }
 
 

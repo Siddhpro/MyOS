@@ -16,5 +16,6 @@ void panic(const char* str);
 #define ISERR(value) ((int)value < 0)
 void kernel_page();
 void kernel_registers();
+void terminal_writechar(char c,char color);
 
 #endif

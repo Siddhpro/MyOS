@@ -2,6 +2,7 @@
 #include "memory/heap/kheap.h"
 #include "config.h"
 #include "status.h"
+#include <stdbool.h>
 
 struct disk_stream* diskstream_create(int disk_id)
 {

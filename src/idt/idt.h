@@ -37,10 +37,12 @@ struct interrupt_frame
 }__attribute__((packed));
 
 typedef void*(*ISR80H_COMMAND)(struct interrupt_frame* frame);
+typedef void (*INTERRUPT_CALLBACK_FUNCTION)();
 
 void idt_init();
 void start_interrupt();
 void clear_interrupt();
 void isr80h_register_command(int command, ISR80H_COMMAND func);
+int idt_register_interrupt_callback(int interrupt,INTERRUPT_CALLBACK_FUNCTION interrupt_callback);
 
 #endif

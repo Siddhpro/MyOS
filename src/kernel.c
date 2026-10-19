@@ -18,6 +18,7 @@
 #include "task/process.h"
 #include "status.h"
 #include "isr80h/isr80h.h"
+#include "keyboard/keyboard.h"
 
 uint16_t *video_mem = 0;
 uint16_t terminal_row = 0;
@@ -33,12 +34,36 @@ void terminal_putchar(int x,int y,char c,char color)
     video_mem[y*VGA_WIDTH + x] = terminal_make_char(c,color);
 }
 
+void terminal_backspace()
+{
+    if(terminal_row == 0 && terminal_column == 0)
+    {
+        return;
+    }
+
+    if(terminal_column == 0)
+    {
+        terminal_row--;
+        terminal_column = VGA_WIDTH;
+    }
+
+    terminal_column--;
+    terminal_writechar(' ',15);
+    terminal_column--;
+}
+
 void terminal_writechar(char c,char color)
 {
     if(c == '\n')
     {
         terminal_column = 0;
         terminal_row++;
+        return;
+    }
+
+    if(c == 0x08)
+    {
+        terminal_backspace();
         return;
     }
     
@@ -140,8 +165,10 @@ void kernel_main()
 
     isr80h_register_commands();
 
+    keyboard_init();
+
     struct process* process = 0;
-    int res = process_load("0:/blank.bin",&process);
+    int res = process_load_switch("0:/blank.bin",&process);
     if(res != ALL_OK)
     {
         panic("oops cannot load blank.bin\n");
