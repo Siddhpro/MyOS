@@ -4,6 +4,10 @@
 #include "config.h"
 #include "task.h"
 
+#define PROCESS_FILETYPE_ELF 0
+#define PROCESS_FILETYPE_BINARY 1
+
+typedef unsigned char PROCESS_FILETYPE;
 struct process
 {
     uint16_t id;
@@ -12,7 +16,14 @@ struct process
     struct task* task;
     void* allocations[MAX_PROGRAM_ALLOCATIONS]; //used for keeping track of malloc
 
-    void* ptr; //physical pointer to process memory
+    union 
+    {
+        void* ptr; //physical pointer to process memory
+        struct elf_file* elf_file; //pointer to elf_file
+    };
+
+    PROCESS_FILETYPE filetype;
+    
     void* stack; //physical pointer to stack
     uint32_t size; // size of data pointed by ptr
     
@@ -22,6 +33,7 @@ struct process
         int tail;
         int head;
     }keyboard;
+
 };
 
 int process_load(const char* filename,struct process** process);

@@ -35,6 +35,7 @@ int paging_map_to(struct paging_chunk* directory, void* virtual_addr, void* phys
 int paging_map_range(struct paging_chunk* directory,void* virtual_addr,void* physical,int count,int flags);
 int paging_map(struct paging_chunk* directory,void* virtual_addr,void* physical,int flags);
 uint32_t paging_get(uint32_t* directory,void* virtual_address);
+void* paging_align_to_lower_page(void* virtual);
 
 
 #endif

@@ -113,6 +113,14 @@ void* paging_align_address(void* ptr)
     return ptr;
 }
 
+void* paging_align_to_lower_page(void* virtual)
+{
+    uint32_t addr = (uint32_t) virtual;
+
+    addr -= (addr%PAGING_PAGE_SIZE);
+    return (void*)addr;
+}
+
 int paging_map(struct paging_chunk* directory,void* virtual_addr,void* physical,int flags)
 {
     if((unsigned int)virtual_addr % PAGING_PAGE_SIZE)

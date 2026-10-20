@@ -6,6 +6,7 @@
 #include "string/string.h"
 #include "kernel.h"
 #include "memory/paging/paging.h"
+#include "loader/formats/elfloader.h"
 
 struct process* current_process = 0;
 static struct process* processes[MAX_PROCESSES] = {};
@@ -62,17 +63,37 @@ static int process_load_binary(const char* filename,struct process* process)
 
     process->ptr = program_data_ptr;
     process->size = stat.filesize;
-
+    process->filetype = PROCESS_FILETYPE_BINARY;
 
 out:
     fclose(fd);
     return res;
 }
 
+static int process_load_elf(const char* filename,struct process* process)
+{
+    int res = 0;
+    struct elf_file* file = 0;
+    elf_load(filename,&file);
+
+    if(ISERR(res))
+    {
+        goto out;
+    }
+
+    process->filetype = PROCESS_FILETYPE_ELF;
+    process->elf_file = file;
+
+out:
+    return res;
+}
+
 static int process_load_data(const char* filename,struct process* process)
 {
     int res = 0;
-    res = process_load_binary(filename,process);
+    res = process_load_elf(filename,process);
+    if(res == -EINFORMAT)
+        res = process_load_binary(filename,process);
     return res;
 }
 
@@ -84,10 +105,55 @@ int process_map_binary(struct process* process)
     return res;
 }
 
+int process_map_elf(struct process* process)
+{
+    int res = 0;
+    struct elf_file* file = process->elf_file;
+
+    struct elf_header* header = elf_header(file);
+    
+    for(int i=0;i<header->e_phnum;i++)
+    {
+        struct elf32_phdr* phdr = elf_phdr_by_index(header,i);
+        void* data_address = (void*)((uint32_t)header + phdr->p_offset);
+        int flags = PAGING_IS_PRESENT | PAGING_ACESS_FROM_ALL;
+        if(phdr->p_flags & PF_W) 
+        {
+            flags |= PAGING_READ_WRITE;
+        }
+
+        res = paging_map_to(process->task->page_directory,paging_align_to_lower_page((void*)phdr->p_vaddr),paging_align_to_lower_page(data_address),paging_align_address(paging_align_address(data_address + phdr->p_filesz)),flags);
+    
+        if(ISERR(res))
+        {
+            break;
+        }
+    }
+
+
+
+out:
+    return res;
+}
+
 int process_map_memory(struct process* process)
 {
     int res = 0;
-    res = process_map_binary(process);
+
+    switch(process->filetype)
+    {
+        case PROCESS_FILETYPE_BINARY:
+            res = process_map_binary(process);
+            break;
+
+        case PROCESS_FILETYPE_ELF:
+            res = process_map_elf(process);
+            break;
+
+        default:
+            panic("Can't process filetype");
+    }
+
     if(res < 0)
     {
         goto out;
