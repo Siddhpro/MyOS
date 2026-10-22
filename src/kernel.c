@@ -133,7 +133,6 @@ void kernel_main()
 {
     //initialise terminal
     terminal_initialize();
-    print("ABCFD\n");
 
     // load the gdt
     memset(gdt_real,0x00,sizeof(gdt_real));
@@ -168,10 +167,10 @@ void kernel_main()
     keyboard_init();
 
     struct process* process = 0;
-    int res = process_load_switch("0:/blank.elf",&process);
+    int res = process_load_switch("0:/shell.elf",&process);
     if(res != ALL_OK)
     {
-        panic("oops cannot load blank.bin\n");
+        panic("oops cannot load shell.elf\n");
     }
 
     task_run_first_task();

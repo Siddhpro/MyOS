@@ -31,6 +31,95 @@ struct process* process_get(int pid)
     return processes[pid];
 }
 
+int find_allocation_index(struct process* process)
+{
+    int res = -1;
+    for(int i=0;i<MAX_PROGRAM_ALLOCATIONS;i++)
+    {
+        if(process->allocations[i] == 0x00)
+        {
+            res = i;
+            break;
+        }
+    }
+
+    if(res == -1)
+    {
+        res = -ENOMEM;
+    }
+
+    return res;
+}
+
+void* process_malloc(struct process* process,size_t size)
+{
+    void* ptr = kzalloc(size);
+    if(!ptr)
+    {
+        goto out;
+    }
+
+    int index = find_allocation_index(process);
+    if(ISERR(index))
+    {
+        goto out;
+    }
+
+    int res = paging_map_to(process->task->page_directory,ptr,ptr,paging_align_address(ptr+size),PAGING_IS_PRESENT | PAGING_READ_WRITE | PAGING_ACESS_FROM_ALL);
+
+    if(res < 0)
+    {
+        goto out;
+    }
+    process->allocations[index] = ptr;
+    process->malloc_sizes[index] = size;
+
+    return ptr;
+
+out:
+    if(ptr)
+    {
+        kfree(ptr);
+    }
+
+    return 0;
+}
+
+int find_ptr_index(struct process* process, void* ptr)
+{
+    int index = -1;
+    for(int i=0;i<MAX_PROGRAM_ALLOCATIONS;i++)
+    {
+        if((uint32_t)ptr == (uint32_t)process->allocations[i])
+        {
+            index = i;
+            break;
+        }
+    }
+
+    return index;
+}
+
+void process_free(struct process* process,void* ptr)
+{
+    int index = find_ptr_index(process,ptr);
+
+    if(index == -1)
+    {
+        return;
+    }
+
+    int res = paging_map_to(process->task->page_directory,ptr,ptr,paging_align_address(ptr+process->malloc_sizes[index]),0x00);
+    if(res < 0)
+    {
+        return;
+    }
+    kfree(ptr);
+
+    process->allocations[index] = 0x00;
+    process->malloc_sizes[index] = 0;
+}
+
 static int process_load_binary(const char* filename,struct process* process)
 {
     int res = 0;
@@ -74,11 +163,12 @@ static int process_load_elf(const char* filename,struct process* process)
 {
     int res = 0;
     struct elf_file* file = 0;
-    elf_load(filename,&file);
+    res = elf_load(filename,&file);
 
     if(ISERR(res))
     {
         goto out;
+        res = -EIO;
     }
 
     process->filetype = PROCESS_FILETYPE_ELF;
@@ -122,7 +212,7 @@ int process_map_elf(struct process* process)
             flags |= PAGING_READ_WRITE;
         }
 
-        res = paging_map_to(process->task->page_directory,paging_align_to_lower_page((void*)phdr->p_vaddr),paging_align_to_lower_page(data_address),paging_align_address(paging_align_address(data_address + phdr->p_filesz)),flags);
+        res = paging_map_to(process->task->page_directory,paging_align_to_lower_page((void*)phdr->p_vaddr),paging_align_to_lower_page(data_address),paging_align_address(paging_align_address(data_address + phdr->p_memsz)),flags);
     
         if(ISERR(res))
         {

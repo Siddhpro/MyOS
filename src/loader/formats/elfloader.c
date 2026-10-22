@@ -195,8 +195,9 @@ int elf_load(const char* filename,struct elf_file** fileout)
     struct elf_file* elf_file = kzalloc(sizeof(struct elf_file));
     int fd = 0;
     int res = fopen(filename, "r");
-    if(res <=0 )
-    {
+    if(res <= 0)
+    {  
+        res = -EIO;
         goto out;
     }
 
@@ -225,7 +226,8 @@ int elf_load(const char* filename,struct elf_file** fileout)
     *fileout = elf_file; 
 
 out:
-    fclose(fd);
+    if(fd > 0)
+        fclose(fd);
     return res;
 }
 
