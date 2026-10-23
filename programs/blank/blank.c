@@ -5,11 +5,9 @@
 
 int main(int argc,char** argv)
 {
-    char* ptr = malloc(20);
-    strcpy(ptr,"hello world");
-    printf("%s\n",ptr);
-    free(ptr);
-    
-    while(1) {}
-    return 0;
+    char str[] = "hello world";
+    struct arguments* start = parse_command(str,sizeof(str));
+    printf("%s\n",start->argument);
+    printf("%s\n",start->next->argument);
+    while(1){};
 }

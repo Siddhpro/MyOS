@@ -60,7 +60,7 @@ void* process_malloc(struct process* process,size_t size)
     }
 
     int index = find_allocation_index(process);
-    if(ISERR(index))
+    if(index < 0)
     {
         goto out;
     }

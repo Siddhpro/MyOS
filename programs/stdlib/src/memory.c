@@ -2,11 +2,11 @@
 
 void* memset(void *ptr,int c,size_t num)
 {
-    char *c_ptr = (char*) c;
+    char *c_ptr = ptr;
 
     for(int i=0;i<num;i++)
     {
-        c_ptr[i] = c;
+        c_ptr[i] = (char)c;
     }
 
     return ptr;

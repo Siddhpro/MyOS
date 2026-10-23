@@ -153,7 +153,7 @@ void kernel_main()
 
     //TSS
     memset(&tss,0,sizeof(tss));
-    tss.esp0 = 0x60000;
+    tss.esp0 = 0x600000;
     tss.ss0 = KERNEL_DATA_SELECTOR;
     tss_load(0x28);
 

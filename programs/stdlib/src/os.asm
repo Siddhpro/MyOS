@@ -45,7 +45,7 @@ low_level_putchar:
 
 low_level_malloc:
     push ebp
-    mov esp,ebp
+    mov ebp,esp
 
     push dword[ebp + 8]
     mov eax,4
