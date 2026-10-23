@@ -200,3 +200,12 @@ uint32_t paging_get(uint32_t* directory,void* virtual_address)
     uint32_t* table = (uint32_t*)(entry & 0xfffff000);
     return table[table_index];
 }   
+
+void* paging_get_physical(uint32_t* directory, void* virtual)
+{
+    void* aligned_virtual = (void*)paging_align_address(virtual);
+
+    void* difference = (void*)((uint32_t)virtual - (uint32_t)aligned_virtual);
+
+    return (void*)((paging_get(directory,aligned_virtual) & 0xfffff000) + difference);
+}

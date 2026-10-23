@@ -167,11 +167,16 @@ void kernel_main()
     keyboard_init();
 
     struct process* process = 0;
-    int res = process_load_switch("0:/shell.elf",&process);
+    int res = process_load_switch("0:/blank.elf",&process);
     if(res != ALL_OK)
     {
         panic("oops cannot load shell.elf\n");
     }
+
+    struct arguments argument;
+    argument.next = 0;
+    strcpy(argument.argument,"Hi");
+    process_put_arguments(process,&argument);
 
     task_run_first_task();
 

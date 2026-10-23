@@ -241,3 +241,10 @@ void* task_get_stack_item(struct task* task,int index)
     kernel_page();
     return res;
 }
+
+void* task_virtual_address_to_physical(struct task* task,void* virtual_address)
+{
+    void* physical = 0;
+    physical = paging_get_physical(task->page_directory->directory,virtual_address);
+    return physical;
+}

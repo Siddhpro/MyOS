@@ -369,3 +369,58 @@ int process_switch(struct process* process)
     current_process = process;
     return 0;
 }
+
+void process_get_arguments(struct process* process, int* argc, char*** argv)
+{
+    *argc = process->arguments.argc;
+    *argv = process->arguments.argv;
+}
+
+int process_put_arguments(struct process* process,struct arguments* start)
+{
+    int res = 0;
+    struct arguments* current = start;
+    int i = 0;
+
+    int argc = 0;
+    while(current)
+    {
+        argc++;
+        current = current->next;
+    }
+    current = start;
+
+    if(argc == 0)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    char **argv = process_malloc(process,sizeof(const char*) * argc);
+    if(!argv)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
+
+    while(current)
+    {
+        char* arg = process_malloc(process,sizeof(current->argument));
+        if(!arg)
+        {
+            res = -ENOMEM;
+            goto out;
+        }
+        strncpy(arg,current->argument,sizeof(current->argument));
+
+        argv[i] = arg;
+        i++;
+        current = current->next;
+    }
+
+    process->arguments.argc = argc;
+    process->arguments.argv = argv;
+
+out:
+    return res;
+}

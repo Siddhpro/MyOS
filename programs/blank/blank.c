@@ -5,9 +5,9 @@
 
 int main(int argc,char** argv)
 {
-    char str[] = "hello world";
-    struct arguments* start = parse_command(str,sizeof(str));
-    printf("%s\n",start->argument);
-    printf("%s\n",start->next->argument);
+    struct process_arguments arguments;
+    low_level_get_arguments(&arguments);
+
+    printf("%d %s",arguments.argc,arguments.argv[0]);
     while(1){};
 }
