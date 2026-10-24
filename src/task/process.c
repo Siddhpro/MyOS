@@ -485,8 +485,11 @@ void remove_from_array(struct process* process)
 
 int process_terminate(struct process* process)
 {
+    if(process->parent)
+    {
+        process->parent->task->state = TASK_STATE_READY;
+    }
     int res = malloc_terminate(process);
-
     if(res < 0)
     {
         goto out;
@@ -503,7 +506,7 @@ int process_terminate(struct process* process)
     task_free(process->task);
 
     remove_from_array(process);
-    
+
 out:
     return res;
 }

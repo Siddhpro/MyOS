@@ -23,6 +23,13 @@ struct registers
 };
 
 struct process;
+
+enum task_state
+{
+    TASK_STATE_RUNNING,
+    TASK_STATE_READY,
+    TASK_STATE_BLOCKED
+};
 struct task
 {
     struct paging_chunk* page_directory;
@@ -32,6 +39,8 @@ struct task
 
     struct task* next;
     struct task* prev;
+
+    enum task_state state;
 };
 
 struct task* task_new(struct process* process);

@@ -38,6 +38,8 @@ out:
 
 void* isr80h_command7_system(struct interrupt_frame* frame)
 {   
+    struct process* parent = task_current()->process;
+    
     struct arguments* arguments = task_virtual_address_to_physical(task_current(),task_get_stack_item(task_current(),0));
     if(!arguments || strlen(arguments[0].argument) == 0) //please have a look at this in case things go south
     {
@@ -64,6 +66,11 @@ void* isr80h_command7_system(struct interrupt_frame* frame)
         return ERROR(res);
     }
 
+    process->parent = parent;
+
+    parent->task->state = TASK_STATE_BLOCKED;
+    process->task->state = TASK_STATE_RUNNING;
+    
     task_switch(process->task);
     task_return(&process->task->registers);
 

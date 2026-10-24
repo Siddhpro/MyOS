@@ -5,7 +5,9 @@
 
 int main(int argc,char** argv)
 {
+    //putchar('A');
     char c = getkey();
+    //putchar('B');
     putchar(c);
-    return 0;
+    while(1){}
 }

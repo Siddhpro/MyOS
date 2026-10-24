@@ -50,6 +50,7 @@ struct process
 
     struct process_arguments arguments;
 
+    struct process* parent;
 };
 
 int process_load(const char* filename,struct process** process);

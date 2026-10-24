@@ -88,6 +88,7 @@ int task_init(struct task* task,struct process* process)
     task->registers.cs = USER_CODE_SEGMENT;
     task->registers.esp = PROGRAM_VIRTUAL_STACK_ADDRESS_START;
     task->process = process;
+    task->state = TASK_STATE_READY;
 
     return 0;
 }
@@ -149,6 +150,7 @@ int task_page()
 int task_switch(struct task* task)
 {
     current_task = task;
+    process_switch(task->process);
     paging_switch(task->page_directory);
     return 0;
 }
@@ -160,6 +162,7 @@ void task_run_first_task()
         panic("task_run_first_task():no task available!");
     }
 
+    task_head->state = TASK_STATE_RUNNING;
     task_switch(task_head);
     task_return(&task_head->registers);
 }
@@ -249,13 +252,47 @@ void* task_virtual_address_to_physical(struct task* task,void* virtual_address)
     return physical;
 }
 
+struct task* task_get_next_ready()
+{
+    struct task* task = current_task->next;
+
+    if(!task)
+    {
+        task = task_head;
+    }
+
+    while(task != current_task)
+    {
+        if(task->state == TASK_STATE_READY)
+        {
+            return task;
+        }
+
+        if(!task)
+        {
+            task = task_head;
+        }
+    }
+
+    return 0;
+}
+
 void task_next()
 {
-    struct task* next = task_get_next();
+    struct task* previous = current_task;
+    struct task* next = task_get_next_ready();
+
     if(!next)
     {
-        panic("No more tasks\n");
+        panic("No runnable tasks\n");
     }
+
+    if(previous->state == TASK_STATE_RUNNING)
+    {
+        previous->state = TASK_STATE_READY;
+    }
+
+    next->state = TASK_STATE_RUNNING;
 
     task_switch(next);
     task_return(&next->registers);
