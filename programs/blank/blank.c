@@ -5,9 +5,13 @@
 
 int main(int argc,char** argv)
 {
-    struct process_arguments arguments;
-    low_level_get_arguments(&arguments);
+    for(int i=0;i<argc;i++)
+    {
+        printf("%s\n",argv[i]);
+    }
 
-    printf("%d %s",arguments.argc,arguments.argv[0]);
+    char* ptr = (char*) 0x00;
+    *ptr = 0x50;
+    
     while(1){};
 }

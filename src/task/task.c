@@ -248,3 +248,15 @@ void* task_virtual_address_to_physical(struct task* task,void* virtual_address)
     physical = paging_get_physical(task->page_directory->directory,virtual_address);
     return physical;
 }
+
+void task_next()
+{
+    struct task* next = task_get_next();
+    if(!next)
+    {
+        panic("No more tasks\n");
+    }
+
+    task_switch(next);
+    task_return(&next->registers);
+}

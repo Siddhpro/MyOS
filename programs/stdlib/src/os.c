@@ -52,7 +52,7 @@ struct arguments* parse_command(const char* ptr, int max)
     struct arguments* start = 0;
     struct arguments* current = 0;
 
-    char command[1024];
+    char command[1025];
 
     if (!ptr || max < 0 || max >= (int)sizeof(command))
     {
@@ -102,4 +102,17 @@ struct arguments* parse_command(const char* ptr, int max)
 
 out:
     return start;
+}
+
+int system_run(const char* command)
+{
+    char buff[1024];
+    strncpy(buff,command,sizeof(buff));
+    struct arguments* argument = parse_command(buff,sizeof(buff));
+    if(!argument)
+    {
+        return -1;
+    }
+
+    return system(argument);
 }

@@ -26,5 +26,6 @@ int getkey();
 void low_level_process_load(const char* filename);
 struct arguments* parse_command(const char* ptr,int max);
 void low_level_get_arguments(struct process_arguments* arguments);
-
+int system(struct arguments* arguments);
+int system_run(const char* command);
 #endif

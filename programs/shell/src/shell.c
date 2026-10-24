@@ -11,7 +11,8 @@ int main(int argc, char** argv)
         print("> ");
         char buff[1024];
         read_terminal_line(buff,sizeof(buff),true);
-        low_level_process_load(buff);
+        print("\n");
+        system_run(buff);
         print("\n");
     } 
     return 0;

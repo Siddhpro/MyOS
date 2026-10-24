@@ -424,3 +424,86 @@ int process_put_arguments(struct process* process,struct arguments* start)
 out:
     return res;
 }
+
+int malloc_terminate(struct process* process)
+{
+    for(int i=0;i<MAX_PROGRAM_ALLOCATIONS;i++)
+    {
+        if(process->allocations[i] != 0x00)
+        {
+            process_free(process,process->allocations[i]);
+        }
+    }
+
+    return 0;
+}
+
+int free_data(struct process* process)
+{
+    int res = 0;
+
+    switch(process->filetype)
+    {
+        case PROCESS_FILETYPE_BINARY:
+            kfree(process->ptr);
+            break;
+
+        case PROCESS_FILETYPE_ELF:
+            elf_close(process->elf_file);
+            break;
+
+        default:
+            res = -EINVARG;
+    }
+    return res;
+}
+
+void process_switch_to_any()
+{
+    for(int i=0;i<MAX_PROCESSES;i++)
+    {
+        if(processes[i] != 0x00)
+        {
+            process_switch(processes[i]);
+        }
+    }
+}
+
+void remove_from_array(struct process* process)
+{
+    processes[process->id] = 0x00;
+
+    if(current_process == process)
+    {
+        process_switch_to_any();
+        return;
+    }
+
+    panic("no other process to switch\n");
+}
+
+int process_terminate(struct process* process)
+{
+    int res = malloc_terminate(process);
+
+    if(res < 0)
+    {
+        goto out;
+    }
+
+    res = free_data(process);
+    if(res < 0)
+    {
+        goto out;
+    }
+
+    kfree(process->stack);
+
+    task_free(process->task);
+
+    remove_from_array(process);
+
+
+out:
+    return res;
+}

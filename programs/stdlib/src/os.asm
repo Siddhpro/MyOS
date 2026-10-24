@@ -9,6 +9,7 @@ global low_level_malloc:function
 global low_level_free:function
 global low_level_process_load:function
 global low_level_get_arguments:function
+global system:function
 
 print:
     push ebp
@@ -74,6 +75,18 @@ low_level_process_load:
 
     push dword[ebp + 8]
     mov eax,6
+    int 0x80
+    add esp,4
+
+    pop ebp
+    ret
+
+system:
+    push ebp
+    mov ebp,esp
+
+    push dword[ebp + 8]
+    mov eax,7
     int 0x80
     add esp,4
 

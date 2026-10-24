@@ -203,7 +203,7 @@ uint32_t paging_get(uint32_t* directory,void* virtual_address)
 
 void* paging_get_physical(uint32_t* directory, void* virtual)
 {
-    void* aligned_virtual = (void*)paging_align_address(virtual);
+    void* aligned_virtual = (void*)paging_align_to_lower_page(virtual);
 
     void* difference = (void*)((uint32_t)virtual - (uint32_t)aligned_virtual);
 

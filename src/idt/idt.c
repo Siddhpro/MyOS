@@ -5,6 +5,7 @@
 #include "../io/io.h"
 #include "kernel.h"
 #include "task/task.h"
+#include "task/process.h"
 #include "status.h"
 
 struct idt_desc idt_descriptors[TOTAL_INTERRUPTS];
@@ -53,6 +54,13 @@ void idt_set(int interrupt_no, void* address)
     idt_descriptors[interrupt_no] = temp;
 }
 
+void idt_handle_exceptions()
+{
+    process_terminate(task_current()->process);
+
+    task_next();
+}
+
 void idt_init()
 {
     memset(idt_descriptors,0,sizeof(idt_descriptors));
@@ -64,8 +72,11 @@ void idt_init()
         idt_set(i,interrupt_pointer_table[i]);
     }
     
-    idt_set(0,idt_zero);
-    idt_set(0x80,isr80h_wrapper);
+    for(int i=0;i<0x20;i++)
+    {
+        idt_register_interrupt_callback(i,idt_handle_exceptions);
+    }
+    
     idt_load(&idtr_descriptor);
 }
 

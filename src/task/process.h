@@ -61,6 +61,6 @@ void process_free(struct process* process,void* ptr);
 
 void process_get_arguments(struct process* process, int* argc, char*** argv);
 int process_put_arguments(struct process* process,struct arguments* start);
-
+int process_terminate(struct process* process);
 
 #endif 
