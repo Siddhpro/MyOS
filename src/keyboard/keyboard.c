@@ -91,3 +91,13 @@ char keyboard_pop()
 
     return c;
 }
+
+void keyboard_set_capslock(struct keyboard* keyboard,KEYBOARD_CAPS_LOCK state)
+{
+    keyboard->capslock = state;
+}
+
+KEYBOARD_CAPS_LOCK keyboard_get_capslock(struct keyboard* keyboard)
+{
+    return keyboard->capslock;
+}

@@ -28,4 +28,5 @@ struct arguments* parse_command(const char* ptr,int max);
 void low_level_get_arguments(struct process_arguments* arguments);
 int system(struct arguments* arguments);
 int system_run(const char* command);
+void exit();
 #endif

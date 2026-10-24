@@ -10,6 +10,7 @@ global low_level_free:function
 global low_level_process_load:function
 global low_level_get_arguments:function
 global system:function
+global exit:function
 
 print:
     push ebp
@@ -101,6 +102,16 @@ low_level_get_arguments:
     mov eax,8
     int 0x80
     add esp,4
+
+    pop ebp
+    ret
+
+exit:
+    push ebp
+    mov ebp,esp
+
+    mov eax,9
+    int 0x80
 
     pop ebp
     ret

@@ -465,8 +465,11 @@ void process_switch_to_any()
         if(processes[i] != 0x00)
         {
             process_switch(processes[i]);
+            return;
         }
     }
+
+    panic("No process to switch to\n");
 }
 
 void remove_from_array(struct process* process)
@@ -478,8 +481,6 @@ void remove_from_array(struct process* process)
         process_switch_to_any();
         return;
     }
-
-    panic("no other process to switch\n");
 }
 
 int process_terminate(struct process* process)
@@ -502,8 +503,7 @@ int process_terminate(struct process* process)
     task_free(process->task);
 
     remove_from_array(process);
-
-
+    
 out:
     return res;
 }
