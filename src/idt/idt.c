@@ -63,7 +63,6 @@ void idt_handle_exceptions()
 
 void idt_clock()
 {
-    outb(0x20,0x20);
     task_next();
 }
 

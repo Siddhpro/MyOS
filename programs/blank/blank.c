@@ -9,5 +9,4 @@ int main(int argc,char** argv)
     char c = getkey();
     //putchar('B');
     putchar(c);
-    while(1){}
 }

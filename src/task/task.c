@@ -263,14 +263,17 @@ struct task* task_get_next_ready()
 
     while(task != current_task)
     {
+
+        task = task->next ? task->next : task_head;
+
+        if(task==current_task)
+        {
+            return 0;
+        }
+
         if(task->state == TASK_STATE_READY)
         {
             return task;
-        }
-
-        if(!task)
-        {
-            task = task_head;
         }
     }
 
@@ -284,7 +287,11 @@ void task_next()
 
     if(!next)
     {
-        panic("No runnable tasks\n");
+        if(previous->state == TASK_STATE_RUNNING)
+        {
+            return;
+        }
+        next = previous;
     }
 
     if(previous->state == TASK_STATE_RUNNING)
